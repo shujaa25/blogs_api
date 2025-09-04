@@ -1,0 +1,1 @@
+insert into post (title, description, content) values ('First post', 'first desc', 'first content');
