@@ -1,5 +1,7 @@
 package com.ishujaa.blogsapi.services.Impl;
 
+import com.ishujaa.blogsapi.exception.APIException;
+import com.ishujaa.blogsapi.exception.ResourceNotFoundException;
 import com.ishujaa.blogsapi.mapper.CategoryMapper;
 import com.ishujaa.blogsapi.model.Category;
 import com.ishujaa.blogsapi.payload.req.CategoryRequestDTO;
@@ -33,7 +35,8 @@ public class SimpleCategoryService implements CategoryService {
 
     @Override
     public CategoryResponseDTO getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
 
         return categoryMapper.toResponseDTO(category);
     }
@@ -42,7 +45,7 @@ public class SimpleCategoryService implements CategoryService {
     public CategoryResponse getCategories() {
         List<Category> categories = categoryRepository.findAll();
 
-        if(categories.isEmpty()) throw new IllegalArgumentException("No Categories found");
+        if(categories.isEmpty()) throw new APIException("No categories found.");
 
         CategoryResponse categoryResponse = new CategoryResponse();
         categoryResponse.setContent(categories.stream().map(categoryMapper::toResponseDTO).toList());
@@ -52,7 +55,8 @@ public class SimpleCategoryService implements CategoryService {
     @Transactional
     @Override
     public CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO categoryRequestDTO) {
-        Category category = categoryRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
 
         category.setName(categoryRequestDTO.name());
         category.setDescription(categoryRequestDTO.description());
@@ -63,7 +67,8 @@ public class SimpleCategoryService implements CategoryService {
     @Transactional
     @Override
     public void deleteCategory(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
 
         categoryRepository.delete(category);
     }
@@ -71,13 +76,14 @@ public class SimpleCategoryService implements CategoryService {
     @Transactional
     @Override
     public CategoryResponseDTO updatePartialCategory(Long id, Map<String, Object> updates) {
-        Category category = categoryRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
 
         updates.forEach((key, val) -> {
             switch (key){
                 case "name": category.setName((String) val); break;
                 case "description": category.setDescription((String) val); break;
-                default: throw new IllegalArgumentException("Invalid field");
+                default: throw new APIException("Invalid field supplied.");
             }
         });
 

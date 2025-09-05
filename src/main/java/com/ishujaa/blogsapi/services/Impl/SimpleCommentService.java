@@ -1,5 +1,7 @@
 package com.ishujaa.blogsapi.services.Impl;
 
+import com.ishujaa.blogsapi.exception.APIException;
+import com.ishujaa.blogsapi.exception.ResourceNotFoundException;
 import com.ishujaa.blogsapi.mapper.CommentMapper;
 import com.ishujaa.blogsapi.model.Comment;
 import com.ishujaa.blogsapi.model.Post;
@@ -29,7 +31,8 @@ public class SimpleCommentService implements CommentService {
     @Override
     public CommentResponseDTO createComment(Long id, CommentRequestDTO commentRequestDTO) {
 
-        Post post = postRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
 
         Comment comment = commentMapper.toEntity(commentRequestDTO);
         comment.setPost(post);
@@ -44,7 +47,8 @@ public class SimpleCommentService implements CommentService {
     @Override
     public CommentResponse getCommentsByPostId(Long id) {
 
-        Post post = postRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
 
         List<CommentResponseDTO> commentResponseDTOS = commentRepository.findAllByPost(post).stream()
                 .map(commentMapper::toResponseDTO).toList();
@@ -57,11 +61,13 @@ public class SimpleCommentService implements CommentService {
 
     @Override
     public CommentResponseDTO getCommentById(Long postId, Long commentId) {
-        Post post = postRepository.findById(postId).orElseThrow(IllegalArgumentException::new);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
         if(!comment.getPost().getId().equals(postId))
-            throw new IllegalArgumentException("Post id doesn't match with comment's post id");
+            throw new APIException("Comment doesn't belong to the post.");
 
         return commentMapper.toResponseDTO(comment);
     }
@@ -69,11 +75,13 @@ public class SimpleCommentService implements CommentService {
     @Transactional
     @Override
     public CommentResponseDTO updateComment(Long postId, Long commentId, CommentRequestDTO commentRequestDTO) {
-        Post post = postRepository.findById(postId).orElseThrow(IllegalArgumentException::new);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
         if(!comment.getPost().getId().equals(postId))
-            throw new IllegalArgumentException("Post id doesn't match with comment's post id");
+            throw new APIException("Comment doesn't belong to the post.");
 
         comment.setBody(commentRequestDTO.body());
         comment.setName(commentRequestDTO.name());
@@ -86,11 +94,13 @@ public class SimpleCommentService implements CommentService {
     @Transactional
     @Override
     public void deleteComment(Long postId, Long commentId) {
-        Post post = postRepository.findById(postId).orElseThrow(IllegalArgumentException::new);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
         if(!comment.getPost().getId().equals(postId))
-            throw new IllegalArgumentException("Post id doesn't match with comment's post id");
+            throw new APIException("Comment doesn't belong to the post.");
 
         post.getComments().remove(comment);
     }
@@ -98,18 +108,20 @@ public class SimpleCommentService implements CommentService {
     @Transactional
     @Override
     public CommentResponseDTO updatePartialComment(Long postId, Long commentId, Map<String, Object> updates) {
-        Post post = postRepository.findById(postId).orElseThrow(IllegalArgumentException::new);
-        Comment comment = commentRepository.findById(commentId).orElseThrow(IllegalArgumentException::new);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
         if(!comment.getPost().getId().equals(postId))
-            throw new IllegalArgumentException("Post id doesn't match with comment's post id");
+            throw new APIException("Comment doesn't belong to the post.");
 
         updates.forEach((key, val) -> {
             switch (key){
                 case "name": comment.setName((String) val); break;
                 case "email": comment.setEmail((String) val); break;
                 case "body": comment.setBody((String) val); break;
-                default: throw new IllegalArgumentException("Invalid filed specified.");
+                default: throw new APIException("Invalid filed specified.");
             }
         });
         commentRepository.save(comment);
