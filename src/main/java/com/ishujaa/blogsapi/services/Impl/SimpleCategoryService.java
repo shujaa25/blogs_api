@@ -28,6 +28,8 @@ public class SimpleCategoryService implements CategoryService {
     @Transactional
     @Override
     public CategoryResponseDTO createCategory(CategoryRequestDTO categoryRequestDTO) {
+        if(categoryRepository.existsByName(categoryRequestDTO.name()))
+            throw new APIException("Category with name already exits.");
         Category category = categoryMapper.toEntity(categoryRequestDTO);
         categoryRepository.save(category);
         return categoryMapper.toResponseDTO(category);

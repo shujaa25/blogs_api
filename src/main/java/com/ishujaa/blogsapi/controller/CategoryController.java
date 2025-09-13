@@ -16,39 +16,38 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PostMapping()
+    @PostMapping("/admin/categories")
     public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody CategoryRequestDTO categoryRequestDTO){
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(categoryRequestDTO));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/public/categories/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id){
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
-    @GetMapping
+    @GetMapping("/public/categories")
     public ResponseEntity<CategoryResponse> getCategories(){
         return ResponseEntity.ok(categoryService.getCategories());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/admin/categories/{id}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id,
                                                               @Valid @RequestBody CategoryRequestDTO categoryRequestDTO){
         return ResponseEntity.ok(categoryService.updateCategory(id, categoryRequestDTO));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/admin/categories/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id){
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(null);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/admin/categories/{id}")
     public ResponseEntity<CategoryResponseDTO> updatePartialCategory(@PathVariable Long id,
                                                                      @Valid @RequestBody Map<String, Object> updates){
         return ResponseEntity.ok(categoryService.updatePartialCategory(id, updates));

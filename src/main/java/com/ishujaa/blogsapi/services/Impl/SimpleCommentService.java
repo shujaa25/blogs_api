@@ -10,6 +10,7 @@ import com.ishujaa.blogsapi.payload.res.CommentResponse;
 import com.ishujaa.blogsapi.payload.res.CommentResponseDTO;
 import com.ishujaa.blogsapi.repo.CommentRepository;
 import com.ishujaa.blogsapi.repo.PostRepository;
+import com.ishujaa.blogsapi.security.SecurityUtils;
 import com.ishujaa.blogsapi.services.CommentService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class SimpleCommentService implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-
+    private final SecurityUtils securityUtils;
 
     @Override
     public CommentResponseDTO createComment(Long id, CommentRequestDTO commentRequestDTO) {
@@ -35,6 +36,7 @@ public class SimpleCommentService implements CommentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
 
         Comment comment = commentMapper.toEntity(commentRequestDTO);
+        comment.setUser(securityUtils.getLoggedUser());
         comment.setPost(post);
         post.getComments().add(comment);
 
@@ -84,8 +86,6 @@ public class SimpleCommentService implements CommentService {
             throw new APIException("Comment doesn't belong to the post.");
 
         comment.setBody(commentRequestDTO.body());
-        comment.setName(commentRequestDTO.name());
-        comment.setEmail(commentRequestDTO.email());
 
         return commentMapper.toResponseDTO(comment);
 
@@ -105,6 +105,7 @@ public class SimpleCommentService implements CommentService {
         post.getComments().remove(comment);
     }
 
+    /*
     @Transactional
     @Override
     public CommentResponseDTO updatePartialComment(Long postId, Long commentId, Map<String, Object> updates) {
@@ -118,13 +119,11 @@ public class SimpleCommentService implements CommentService {
 
         updates.forEach((key, val) -> {
             switch (key){
-                case "name": comment.setName((String) val); break;
-                case "email": comment.setEmail((String) val); break;
                 case "body": comment.setBody((String) val); break;
                 default: throw new APIException("Invalid filed specified.");
             }
         });
         commentRepository.save(comment);
         return commentMapper.toResponseDTO(comment);
-    }
+    }*/
 }

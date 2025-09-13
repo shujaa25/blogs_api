@@ -5,11 +5,14 @@ import com.ishujaa.blogsapi.exception.ResourceNotFoundException;
 import com.ishujaa.blogsapi.mapper.PostMapper;
 import com.ishujaa.blogsapi.model.Category;
 import com.ishujaa.blogsapi.model.Post;
+import com.ishujaa.blogsapi.model.User;
 import com.ishujaa.blogsapi.payload.req.PostRequestDTO;
 import com.ishujaa.blogsapi.payload.res.PostResponse;
 import com.ishujaa.blogsapi.payload.res.PostResponseDTO;
 import com.ishujaa.blogsapi.repo.CategoryRepository;
 import com.ishujaa.blogsapi.repo.PostRepository;
+import com.ishujaa.blogsapi.repo.UserRepository;
+import com.ishujaa.blogsapi.security.SecurityUtils;
 import com.ishujaa.blogsapi.services.PostService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,8 +33,11 @@ public class SimplePostService implements PostService {
 
     private final PostMapper postMapper;
 
+    private final SecurityUtils securityUtils;
+
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     @Override
@@ -40,8 +48,10 @@ public class SimplePostService implements PostService {
 
         Post post = postMapper.toEntity(postRequestDTO);
         post.setCategory(category);
+        post.setUser(securityUtils.getLoggedUser());
         postRepository.save(post);
-        category.getPosts().add(post); //required?
+
+        //category.getPosts().add(post);
         return postMapper.toResponseDTO(post);
 
     }
@@ -98,10 +108,17 @@ public class SimplePostService implements PostService {
     @Transactional
     @Override
     public void deletePost(Long id) {
+
+        //User loggedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Post", "id", id));
         Category category = categoryRepository.findById(post.getCategory().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", post.getCategory().getId()));
+
+        //if(!post.getUser().getId().equals(loggedUser.getId()))
+        //    throw new AccessDeniedException("You are not authorized to delete this post.");
+
         category.getPosts().remove(post);
     }
 

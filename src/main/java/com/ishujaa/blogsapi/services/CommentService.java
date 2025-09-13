@@ -20,5 +20,5 @@ public interface CommentService {
     @Transactional
     void deleteComment(Long id, Long commentId);
 
-    CommentResponseDTO updatePartialComment(Long id, Long commentId, Map<String, Object> updates);
+    //CommentResponseDTO updatePartialComment(Long id, Long commentId, Map<String, Object> updates);
 }

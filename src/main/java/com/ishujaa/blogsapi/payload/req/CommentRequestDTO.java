@@ -7,9 +7,5 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public record CommentRequestDTO(
         @NotBlank
-        String name,
-        @NotBlank
-        String email,
-        @NotBlank
         String body
 ) {}

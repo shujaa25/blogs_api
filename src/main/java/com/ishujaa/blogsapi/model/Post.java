@@ -3,8 +3,14 @@ package com.ishujaa.blogsapi.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -31,10 +37,23 @@ public class Post {
     @Column(nullable = false)
     private String content;
 
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
     @OneToMany(mappedBy = "post", cascade = {CascadeType.ALL}, orphanRemoval = true)
     @ToString.Exclude
     @JsonIgnore
     private Set<Comment> comments = new HashSet<>();
+
+    @ManyToOne
+    @ToString.Exclude
+    @JsonIgnore
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
